@@ -1,0 +1,233 @@
+/* ── The Move — Global Design Tokens ── */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500&display=swap');
+
+:root {
+  --gold: #C9A84C;
+  --gold-light: #F0DFA0;
+  --gold-dim: #8B6F2E;
+  --ink: #0D0D0D;
+  --ink2: #1A1A1A;
+  --ink3: #2A2A2A;
+  --smoke: #F7F5F0;
+  --smoke2: #EFECE4;
+  --mist: #E8E4D8;
+  --ash: #9A9488;
+  --cream: #FDFBF7;
+  --purple-dark: #1A0A2E;
+  --serif: 'Playfair Display', Georgia, serif;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--sans);
+  background: var(--smoke);
+  color: var(--ink);
+  max-width: 430px;
+  margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.screen-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 72px;
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--cream);
+  border-radius: var(--radius-md);
+  border: 0.5px solid var(--mist);
+  overflow: hidden;
+}
+
+.card.street-card { border-color: rgba(201,168,76,0.35); }
+
+.card-banner {
+  height: 88px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 10px 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-banner-emoji {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -58%);
+  font-size: 30px;
+  line-height: 1;
+}
+
+.card-banner-tag {
+  font-family: var(--sans);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.65);
+  font-weight: 400;
+  position: relative;
+  z-index: 1;
+}
+
+.card-banner-date {
+  font-family: var(--sans);
+  font-size: 8px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.05em;
+  position: relative;
+  z-index: 1;
+}
+
+.card-body { padding: 10px 12px 11px; }
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.card-title {
+  font-family: var(--serif);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink);
+  line-height: 1.35;
+  margin-bottom: 3px;
+}
+
+.card-sub {
+  font-size: 9px;
+  color: var(--ash);
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  flex-wrap: wrap;
+  letter-spacing: 0.03em;
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 0.5px solid var(--mist);
+}
+
+.gold-sep { color: var(--gold); font-size: 8px; }
+
+/* ── Badges ── */
+.badge {
+  font-size: 8px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  font-weight: 400;
+  font-family: var(--sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.badge-club    { background: var(--smoke2); color: var(--ash); }
+.badge-sports  { background: #0D1F0D; color: #7CB87C; }
+.badge-auto    { background: #1A1200; color: #C9A84C; }
+.badge-street  { background: var(--purple-dark); color: var(--gold); }
+.badge-ai      { background: var(--ink2); color: var(--gold); }
+
+/* ── Chips ── */
+.chip {
+  white-space: nowrap;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 9px;
+  cursor: pointer;
+  border: 0.5px solid var(--mist);
+  color: var(--ash);
+  background: var(--cream);
+  font-family: var(--sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: all 0.15s;
+}
+
+.chip.active       { background: var(--ink); color: var(--gold); border-color: var(--ink); }
+.chip.street       { border-color: rgba(201,168,76,0.4); color: var(--gold-dim); }
+.chip.street.active { background: var(--purple-dark); color: var(--gold); border-color: var(--gold-dim); }
+
+/* ── Buttons ── */
+.btn-rsvp {
+  font-size: 9px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 0.5px solid var(--gold);
+  color: var(--gold);
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.btn-rsvp.going  { background: var(--gold); color: var(--ink); }
+.btn-rsvp.street { border-color: var(--gold); color: var(--gold); }
+
+.btn-ticket {
+  font-size: 9px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 0.5px solid var(--mist);
+  color: var(--ash);
+  background: var(--smoke);
+  cursor: pointer;
+  font-family: var(--sans);
+}
+
+.btn-ticket.free { border-color: #2E5E2E; color: #4A9A4A; }
+
+/* ── Feed ── */
+.feed { padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
+
+/* ── Section label ── */
+.section-label {
+  font-size: 8px;
+  font-weight: 500;
+  color: var(--ash);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 10px 12px 4px;
+  font-family: var(--sans);
+}
+
+/* ── AI reason pill ── */
+.ai-reason {
+  font-size: 9px;
+  color: var(--gold-dim);
+  background: #1A1400;
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin-top: 5px;
+  font-family: var(--sans);
+  letter-spacing: 0.02em;
+  border: 0.5px solid rgba(201,168,76,0.2);
+}
+
+/* ── Going count ── */
+.going-count { font-size: 9px; color: var(--ash); font-family: var(--sans); letter-spacing: 0.04em; }
+
+/* ── Btn row ── */
+.btn-row { display: flex; gap: 5px; }
