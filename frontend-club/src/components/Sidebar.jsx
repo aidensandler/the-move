@@ -6,9 +6,9 @@ const NAV = [
   { id: "applications", icon: "✉", label: "Admin applications" },
 ];
 
-export default function Sidebar({ active, onChange, club, user, onLogout }) {
+export default function Sidebar({ active, onChange, club, user, onLogout, open = false, onClose }) {
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${open ? " open" : ""}`}>
       {/* Wordmark */}
       <div style={{ padding: "20px 16px 16px", borderBottom: "0.5px solid rgba(201,168,76,0.15)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
@@ -48,7 +48,7 @@ export default function Sidebar({ active, onChange, club, user, onLogout }) {
         {NAV.map((item) => (
           <button
             key={item.id}
-            onClick={() => onChange(item.id)}
+            onClick={() => { onChange(item.id); onClose && onClose(); }}
             style={{
               width: "100%", display: "flex", alignItems: "center", gap: 8,
               padding: "8px 10px", borderRadius: 7, border: "none",

@@ -15,6 +15,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [page, setPage]       = useState("dashboard");
   const [editEvent, setEditEvent] = useState(null); // event being edited
+  const [navOpen, setNavOpen] = useState(false);    // mobile drawer
 
   useEffect(() => {
     const token = getToken();
@@ -61,9 +62,37 @@ export default function App() {
     applications: <AdminApplicationsPage club={club} />,
   };
 
+  const activeLabel = ({
+    dashboard: "Dashboard",
+    post: "Post a flyer",
+    events: "Manage events",
+    profile: "Club profile",
+    applications: "Admin applications",
+  })[page] || "Dashboard";
+
   return (
     <div className="admin-shell">
-      <Sidebar active={page} onChange={(p) => { setEditEvent(null); setPage(p); }} club={club} user={user} onLogout={handleLogout} />
+      {/* Mobile-only top bar with hamburger */}
+      <header className="mobile-topbar">
+        <button className="hamburger" onClick={() => setNavOpen(true)} aria-label="Open menu">≡</button>
+        <div className="mobile-topbar-brand" style={{ flexDirection: "column", alignItems: "flex-end", gap: 0 }}>
+          <span>{activeLabel}</span>
+          <small>{club?.name || "The Move · Club Portal"}</small>
+        </div>
+      </header>
+
+      {/* Backdrop closes the drawer on mobile */}
+      {navOpen && <div className="sidebar-backdrop" onClick={() => setNavOpen(false)} />}
+
+      <Sidebar
+        active={page}
+        onChange={(p) => { setEditEvent(null); setPage(p); }}
+        club={club}
+        user={user}
+        onLogout={handleLogout}
+        open={navOpen}
+        onClose={() => setNavOpen(false)}
+      />
       <main className="main-content">
         {pages[page] ?? pages.dashboard}
       </main>
