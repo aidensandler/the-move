@@ -1,4 +1,4 @@
-const TABS = [
+export const TABS = [
   { id: "all",     icon: "⌂", label: "All" },
   { id: "foryou",  icon: "✦", label: "For You" },
   { id: "street",  icon: "🕯", label: "Street" },
@@ -8,7 +8,7 @@ const TABS = [
 
 export default function BottomNav({ active, onChange }) {
   return (
-    <nav style={{
+    <nav className="bottom-nav" style={{
       position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)",
       width: "100%", maxWidth: 430,
       display: "flex",

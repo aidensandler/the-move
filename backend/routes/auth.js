@@ -34,6 +34,87 @@ router.post("/register", async (req, res) => {
   res.status(201).json({ message: "Registration successful — check your email to confirm" });
 });
 
+// POST /api/auth/apply-admin
+// Body: { email, password, name, class_year, club_id, message }
+// Register a new user (role='student') AND submit a club admin application
+// in one atomic flow — used by the "Apply to an existing club" link on the
+// club portal login screen.
+router.post("/apply-admin", async (req, res) => {
+  const { email, password, name, class_year, club_id, message } = req.body;
+
+  if (!email || !email.endsWith("@princeton.edu")) {
+    return res.status(400).json({ error: "Only @princeton.edu email addresses are allowed" });
+  }
+  if (!club_id) {
+    return res.status(400).json({ error: "Please choose the club you want to join" });
+  }
+
+  // Does that club exist?
+  const { data: club } = await supabase
+    .from("clubs").select("id, name").eq("id", club_id).maybeSingle();
+  if (!club) return res.status(404).json({ error: "Club not found" });
+
+  // Create the auth user (or reuse existing one if the email is already registered)
+  let userId;
+  const { data: created, error: createErr } = await supabase.auth.admin.createUser({
+    email, password,
+    email_confirm: false,
+    user_metadata: { name, class_year },
+  });
+
+  if (createErr) {
+    // If already registered, try to find the existing profile and attach the
+    // application to that user instead (so repeat applications still work).
+    const { data: existing } = await supabase
+      .from("profiles").select("id").eq("email", email).maybeSingle();
+    if (!existing) return res.status(400).json({ error: createErr.message });
+    userId = existing.id;
+  } else {
+    userId = created.user.id;
+    await supabase.from("profiles").insert({
+      id: userId,
+      email,
+      name,
+      class_year: class_year ? Number(class_year) : null,
+      role: "student",
+    });
+  }
+
+  // Already an admin of that club?
+  const { data: existingAdmin } = await supabase
+    .from("club_admins")
+    .select("user_id")
+    .eq("user_id", userId)
+    .eq("club_id", club_id)
+    .maybeSingle();
+  if (existingAdmin) {
+    return res.status(409).json({ error: "You're already an admin of this club — just sign in." });
+  }
+
+  // Reject if there's already a pending application for this user+club
+  const { data: existingApp } = await supabase
+    .from("club_admin_applications")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("club_id", club_id)
+    .eq("status", "pending")
+    .maybeSingle();
+  if (existingApp) {
+    return res.status(409).json({ error: "You already have a pending application for this club" });
+  }
+
+  const { data: app, error: appErr } = await supabase
+    .from("club_admin_applications")
+    .insert({ user_id: userId, club_id, message: message || null, status: "pending" })
+    .select().single();
+  if (appErr) return res.status(500).json({ error: appErr.message });
+
+  res.status(201).json({
+    message: `Application submitted to ${club.name}. Check your Princeton email to confirm your account — you'll be notified once an admin reviews your request.`,
+    application: app,
+  });
+});
+
 // POST /api/auth/login
 // Returns a Supabase session (access_token, refresh_token)
 router.post("/login", async (req, res) => {

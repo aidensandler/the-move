@@ -1,8 +1,9 @@
 const NAV = [
-  { id: "dashboard", icon: "◫", label: "Dashboard" },
-  { id: "post",      icon: "✦", label: "Post a flyer" },
-  { id: "events",    icon: "◈", label: "Manage events" },
-  { id: "profile",   icon: "◎", label: "Club profile" },
+  { id: "dashboard",    icon: "◫", label: "Dashboard" },
+  { id: "post",         icon: "✦", label: "Post a flyer" },
+  { id: "events",       icon: "◈", label: "Manage events" },
+  { id: "profile",      icon: "◎", label: "Club profile" },
+  { id: "applications", icon: "✉", label: "Admin applications" },
 ];
 
 export default function Sidebar({ active, onChange, club, user, onLogout }) {

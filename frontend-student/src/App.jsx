@@ -3,6 +3,7 @@ import { useAuth } from "./context/AuthContext";
 import LoginScreen from "./screens/LoginScreen";
 import TopBar from "./components/TopBar";
 import BottomNav from "./components/BottomNav";
+import DesktopNav from "./components/DesktopNav";
 import AllEventsScreen from "./screens/AllEventsScreen";
 import ForYouScreen from "./screens/ForYouScreen";
 import TheStreetScreen from "./screens/TheStreetScreen";
@@ -37,8 +38,11 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <TopBar />
-      <main className="screen-content">{screens[activeTab]}</main>
+      <DesktopNav active={activeTab} onChange={setActiveTab} />
+      <div className="main-pane">
+        <TopBar />
+        <main className="screen-content">{screens[activeTab]}</main>
+      </div>
       <BottomNav active={activeTab} onChange={setActiveTab} />
       {ticketEvent && <TicketModal event={ticketEvent} onClose={() => setTicketEvent(null)} />}
     </div>

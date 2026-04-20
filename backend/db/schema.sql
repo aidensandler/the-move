@@ -37,6 +37,28 @@ create table public.club_admins (
   primary key (user_id, club_id)
 );
 
+-- ── Club admin applications ──────────────────
+-- Users apply to become an admin of an existing club.
+-- Existing admins of that club (or super_admins) review and approve/reject.
+create table public.club_admin_applications (
+  id           uuid primary key default gen_random_uuid(),
+  user_id      uuid not null references public.profiles(id) on delete cascade,
+  club_id      uuid not null references public.clubs(id)     on delete cascade,
+  message      text,
+  status       text not null default 'pending'
+               check (status in ('pending', 'approved', 'rejected')),
+  reviewed_by  uuid references public.profiles(id),
+  reviewed_at  timestamptz,
+  created_at   timestamptz default now(),
+  -- A user can only have one pending application per club
+  unique (user_id, club_id, status)
+);
+
+create index if not exists idx_club_admin_applications_club
+  on public.club_admin_applications (club_id, status);
+create index if not exists idx_club_admin_applications_user
+  on public.club_admin_applications (user_id, status);
+
 -- ── Events ────────────────────────────────────
 create table public.events (
   id           uuid primary key default gen_random_uuid(),
@@ -125,6 +147,7 @@ create table public.eating_club_status (
 alter table public.profiles         enable row level security;
 alter table public.clubs            enable row level security;
 alter table public.club_admins      enable row level security;
+alter table public.club_admin_applications enable row level security;
 alter table public.events           enable row level security;
 alter table public.rsvps            enable row level security;
 alter table public.tickets          enable row level security;
@@ -159,6 +182,33 @@ create policy "tickets_read_own" on public.tickets for select using (auth.uid() 
 -- Follows: users manage own
 create policy "follows_all" on public.follows for all using (auth.uid() = follower_id);
 create policy "follows_read" on public.follows for select using (true);
+
+-- Club admin applications:
+--   • applicants can read their own applications
+--   • existing admins of the target club can read applications for that club
+--   • super_admins can read all
+--   • any authenticated user can submit one for themselves
+--   • only admins of that club or super_admins can update (approve/reject)
+create policy "apps_read_own" on public.club_admin_applications
+  for select using (auth.uid() = user_id);
+create policy "apps_read_club_admin" on public.club_admin_applications
+  for select using (
+    exists (select 1 from public.club_admins
+            where user_id = auth.uid()
+              and club_id = club_admin_applications.club_id)
+    or exists (select 1 from public.profiles
+               where id = auth.uid() and role = 'super_admin')
+  );
+create policy "apps_insert_self" on public.club_admin_applications
+  for insert with check (auth.uid() = user_id);
+create policy "apps_update_reviewer" on public.club_admin_applications
+  for update using (
+    exists (select 1 from public.club_admins
+            where user_id = auth.uid()
+              and club_id = club_admin_applications.club_id)
+    or exists (select 1 from public.profiles
+               where id = auth.uid() and role = 'super_admin')
+  );
 
 -- Eating clubs: public read
 create policy "ec_read" on public.eating_clubs for select using (true);

@@ -29,6 +29,7 @@ export const clubApi = {
   register:   (body) => apiFetch("/api/auth/register", { method: "POST", body: JSON.stringify({ ...body, role: "club_admin" }) }),
   me:         () => apiFetch("/api/auth/me"),
   myClub:     () => apiFetch("/api/clubs/admin/my-club"),
+  listClubs:  () => apiFetch("/api/clubs"),
   createClub: (body) => apiFetch("/api/clubs", { method: "POST", body: JSON.stringify(body) }),
 
   // Events — uses FormData to support file upload
@@ -38,4 +39,12 @@ export const clubApi = {
 
   // Eating club status
   submitStatus: (clubId, body) => apiFetch(`/api/clubs/eating/${clubId}/status`, { method: "POST", body: JSON.stringify(body) }),
+
+  // Club admin applications
+  applyAsAdmin:       (body) => apiFetch("/api/auth/apply-admin", { method: "POST", body: JSON.stringify(body) }),
+  applyToClub:        (body) => apiFetch("/api/clubs/admin/apply", { method: "POST", body: JSON.stringify(body) }),
+  myApplications:     () => apiFetch("/api/clubs/admin/applications/mine"),
+  listApplications:   (status = "pending") => apiFetch(`/api/clubs/admin/applications?status=${status}`),
+  approveApplication: (id) => apiFetch(`/api/clubs/admin/applications/${id}/approve`, { method: "POST" }),
+  rejectApplication:  (id) => apiFetch(`/api/clubs/admin/applications/${id}/reject`, { method: "POST" }),
 };

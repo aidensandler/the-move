@@ -7,6 +7,7 @@ import PostFlyerPage from "./pages/PostFlyerPage";
 import ManageEventsPage from "./pages/ManageEventsPage";
 import ClubProfilePage  from "./pages/ClubProfilePage";
 import SetupClubPage    from "./pages/SetupClubPage";
+import AdminApplicationsPage from "./pages/AdminApplicationsPage";
 
 export default function App() {
   const [user, setUser]       = useState(null);
@@ -53,10 +54,11 @@ export default function App() {
   if (!club) return <SetupClubPage user={user} onCreated={(c) => { setClub(c); setPage("dashboard"); }} />;
 
   const pages = {
-    dashboard: <DashboardPage club={club} onNavigate={setPage} />,
-    post:      <PostFlyerPage club={club} editEvent={editEvent} onSaved={() => { setEditEvent(null); setPage("events"); }} onCancel={() => { setEditEvent(null); setPage("events"); }} />,
-    events:    <ManageEventsPage club={club} onEdit={openEdit} />,
-    profile:   <ClubProfilePage club={club} onUpdated={setClub} />,
+    dashboard:    <DashboardPage club={club} onNavigate={setPage} />,
+    post:         <PostFlyerPage club={club} editEvent={editEvent} onSaved={() => { setEditEvent(null); setPage("events"); }} onCancel={() => { setEditEvent(null); setPage("events"); }} />,
+    events:       <ManageEventsPage club={club} onEdit={openEdit} />,
+    profile:      <ClubProfilePage club={club} onUpdated={setClub} />,
+    applications: <AdminApplicationsPage club={club} />,
   };
 
   return (
