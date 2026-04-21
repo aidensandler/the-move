@@ -43,7 +43,7 @@ export default function LoginPage({ onLogin }) {
         onLogin(profile, club);
       } else if (mode === "register") {
         await clubApi.register({ email: form.email, password: form.password, name: form.name, role: "club_admin" });
-        setSuccess("Check your Princeton email to confirm your account, then sign in.");
+        setSuccess("Account created — you can sign in now.");
         setMode("login");
       } else if (mode === "apply") {
         if (!form.club_id) return setError("Please choose the club you'd like to join.");

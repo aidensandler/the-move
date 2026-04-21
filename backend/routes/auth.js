@@ -16,7 +16,7 @@ router.post("/register", async (req, res) => {
 
   const { data, error } = await supabase.auth.admin.createUser({
     email, password,
-    email_confirm: false, // Supabase will send confirmation email
+    email_confirm: true, // auto-confirm — users can sign in immediately
     user_metadata: { name, class_year },
   });
 
@@ -31,7 +31,7 @@ router.post("/register", async (req, res) => {
     role: role === "club_admin" ? "club_admin" : "student",
   });
 
-  res.status(201).json({ message: "Registration successful — check your email to confirm" });
+  res.status(201).json({ message: "Account created — you can sign in now." });
 });
 
 // POST /api/auth/apply-admin
@@ -58,7 +58,7 @@ router.post("/apply-admin", async (req, res) => {
   let userId;
   const { data: created, error: createErr } = await supabase.auth.admin.createUser({
     email, password,
-    email_confirm: false,
+    email_confirm: true, // auto-confirm — no email verification required
     user_metadata: { name, class_year },
   });
 
@@ -110,7 +110,7 @@ router.post("/apply-admin", async (req, res) => {
   if (appErr) return res.status(500).json({ error: appErr.message });
 
   res.status(201).json({
-    message: `Application submitted to ${club.name}. Check your Princeton email to confirm your account — you'll be notified once an admin reviews your request.`,
+    message: `Application submitted to ${club.name}. You'll be notified once an existing admin reviews your request.`,
     application: app,
   });
 });

@@ -22,7 +22,7 @@ export default function LoginScreen() {
         await login(form.email, form.password);
       } else {
         await register({ email: form.email, password: form.password, name: form.name, class_year: form.class_year });
-        setSuccess("Check your Princeton email to confirm, then sign in.");
+        setSuccess("Account created — you can sign in now.");
         setMode("login");
       }
     } catch (err) { setError(err.message); }
