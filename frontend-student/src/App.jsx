@@ -8,6 +8,7 @@ import AllEventsScreen from "./screens/AllEventsScreen";
 import ForYouScreen from "./screens/ForYouScreen";
 import TheStreetScreen from "./screens/TheStreetScreen";
 import FriendsScreen from "./screens/FriendsScreen";
+import ReservedScreen from "./screens/ReservedScreen";
 import TicketsScreen from "./screens/TicketsScreen";
 import TicketModal from "./components/TicketModal";
 import "./index.css";
@@ -32,8 +33,9 @@ export default function App() {
     all:     <AllEventsScreen onTicket={setTicketEvent} />,
     foryou:  <ForYouScreen onTicket={setTicketEvent} />,
     street:  <TheStreetScreen />,
-    friends: <FriendsScreen />,
-    tickets: <TicketsScreen />,
+    friends:  <FriendsScreen />,
+    reserved: <ReservedScreen />,
+    tickets:  <TicketsScreen />,
   };
 
   return (

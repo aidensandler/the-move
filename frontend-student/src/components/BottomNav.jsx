@@ -1,9 +1,10 @@
 export const TABS = [
-  { id: "all",     icon: "⌂", label: "All" },
-  { id: "foryou",  icon: "✦", label: "For You" },
-  { id: "street",  icon: "🕯", label: "Street" },
-  { id: "friends", icon: "◎", label: "Friends" },
-  { id: "tickets", icon: "◈", label: "Tickets" },
+  { id: "all",      icon: "⌂", label: "All" },
+  { id: "foryou",   icon: "✦", label: "For You" },
+  { id: "street",   icon: "🕯", label: "Street" },
+  { id: "friends",  icon: "◎", label: "Friends" },
+  { id: "reserved", icon: "✓", label: "Reserved" },
+  { id: "tickets",  icon: "◈", label: "Tickets" },
 ];
 
 export default function BottomNav({ active, onChange }) {
@@ -24,9 +25,10 @@ export default function BottomNav({ active, onChange }) {
             cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
             borderTop: `1.5px solid ${on ? "#C9A84C" : "transparent"}`,
             color: on ? "#C9A84C" : "#9A9488",
-            fontSize: 9, letterSpacing: "0.07em", textTransform: "uppercase",
+            fontSize: 8, letterSpacing: "0.05em", textTransform: "uppercase",
+            minWidth: 0,
           }}>
-            <span style={{ fontSize: 14 }}>{tab.icon}</span>
+            <span style={{ fontSize: 13 }}>{tab.icon}</span>
             {tab.label}
           </button>
         );

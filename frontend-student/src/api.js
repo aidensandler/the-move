@@ -44,6 +44,7 @@ export const api = {
   friends:         () => apiFetch("/api/social/friends"),
   friendsActivity: () => apiFetch("/api/social/friends-activity"),
   toggleFollow:    (userId) => apiFetch(`/api/social/follow/${userId}`, { method: "POST" }),
+  searchUsers:     (q = "") => apiFetch("/api/social/users?" + new URLSearchParams({ q })),
 
   // Clubs & eating
   clubs:           () => apiFetch("/api/clubs"),

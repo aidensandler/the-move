@@ -136,6 +136,41 @@ router.get("/friends", requireAuth, async (req, res) => {
   res.json(data.map((f) => f.profiles));
 });
 
+// GET /api/social/users?q=… — search Princeton students to follow.
+// Returns up to 20 profiles matching name or email (case-insensitive),
+// excluding the current user. If `q` is empty, returns 20 suggested
+// profiles (most recently joined).
+router.get("/users", requireAuth, async (req, res) => {
+  const q = (req.query.q ?? "").toString().trim();
+  const me = req.user.id;
+
+  // Fetch who I'm already following so we can flag them in the UI
+  const { data: follows } = await supabase
+    .from("follows")
+    .select("following_id")
+    .eq("follower_id", me);
+  const followingSet = new Set((follows ?? []).map((f) => f.following_id));
+
+  let query = supabase
+    .from("profiles")
+    .select("id, name, email, avatar_url, class_year")
+    .neq("id", me)
+    .limit(20);
+
+  if (q.length > 0) {
+    // Match name OR email, case-insensitive substring
+    const pattern = `%${q.replace(/[%_]/g, "")}%`;
+    query = query.or(`name.ilike.${pattern},email.ilike.${pattern}`);
+  } else {
+    query = query.order("created_at", { ascending: false });
+  }
+
+  const { data, error } = await query;
+  if (error) return res.status(500).json({ error: error.message });
+
+  res.json((data ?? []).map((p) => ({ ...p, _following: followingSet.has(p.id) })));
+});
+
 // GET /api/social/recommendations — simple scoring-based For You events
 router.get("/recommendations", requireAuth, async (req, res) => {
   const userId = req.user.id;
