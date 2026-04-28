@@ -8,6 +8,7 @@ import ManageEventsPage from "./pages/ManageEventsPage";
 import ClubProfilePage  from "./pages/ClubProfilePage";
 import SetupClubPage    from "./pages/SetupClubPage";
 import AdminApplicationsPage from "./pages/AdminApplicationsPage";
+import PendingClubsPage from "./pages/PendingClubsPage";
 
 export default function App() {
   const [user, setUser]       = useState(null);
@@ -55,11 +56,12 @@ export default function App() {
   if (!club) return <SetupClubPage user={user} onCreated={(c) => { setClub(c); setPage("dashboard"); }} />;
 
   const pages = {
-    dashboard:    <DashboardPage club={club} onNavigate={setPage} />,
-    post:         <PostFlyerPage club={club} editEvent={editEvent} onSaved={() => { setEditEvent(null); setPage("events"); }} onCancel={() => { setEditEvent(null); setPage("events"); }} />,
-    events:       <ManageEventsPage club={club} onEdit={openEdit} />,
-    profile:      <ClubProfilePage club={club} onUpdated={setClub} />,
-    applications: <AdminApplicationsPage club={club} />,
+    dashboard:       <DashboardPage club={club} onNavigate={setPage} />,
+    post:            <PostFlyerPage club={club} editEvent={editEvent} onSaved={() => { setEditEvent(null); setPage("events"); }} onCancel={() => { setEditEvent(null); setPage("events"); }} />,
+    events:          <ManageEventsPage club={club} onEdit={openEdit} />,
+    profile:         <ClubProfilePage club={club} onUpdated={setClub} />,
+    applications:    <AdminApplicationsPage club={club} />,
+    "pending-clubs": <PendingClubsPage />,
   };
 
   const activeLabel = ({
@@ -68,6 +70,7 @@ export default function App() {
     events: "Manage events",
     profile: "Club profile",
     applications: "Admin applications",
+    "pending-clubs": "Pending clubs",
   })[page] || "Dashboard";
 
   return (

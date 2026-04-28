@@ -47,4 +47,9 @@ export const clubApi = {
   listApplications:   (status = "pending") => apiFetch(`/api/clubs/admin/applications?status=${status}`),
   approveApplication: (id) => apiFetch(`/api/clubs/admin/applications/${id}/approve`, { method: "POST" }),
   rejectApplication:  (id) => apiFetch(`/api/clubs/admin/applications/${id}/reject`, { method: "POST" }),
+
+  // Super-admin: pending club verifications
+  pendingClubs: () => apiFetch("/api/clubs/admin/pending"),
+  verifyClub:   (id) => apiFetch(`/api/clubs/admin/${id}/verify`, { method: "POST" }),
+  rejectClub:   (id) => apiFetch(`/api/clubs/admin/${id}`, { method: "DELETE" }),
 };

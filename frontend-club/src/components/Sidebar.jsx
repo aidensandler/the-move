@@ -4,9 +4,13 @@ const NAV = [
   { id: "events",       icon: "◈", label: "Manage events" },
   { id: "profile",      icon: "◎", label: "Club profile" },
   { id: "applications", icon: "✉", label: "Admin applications" },
+  // Super-admin only — filtered out below for everyone else
+  { id: "pending-clubs", icon: "★", label: "Pending clubs", superOnly: true },
 ];
 
 export default function Sidebar({ active, onChange, club, user, onLogout, open = false, onClose }) {
+  const isSuper = user?.role === "super_admin";
+  const visibleNav = NAV.filter((item) => !item.superOnly || isSuper);
   return (
     <aside className={`sidebar${open ? " open" : ""}`}>
       {/* Wordmark */}
@@ -45,7 +49,7 @@ export default function Sidebar({ active, onChange, club, user, onLogout, open =
 
       {/* Nav */}
       <nav style={{ flex: 1, padding: "8px" }}>
-        {NAV.map((item) => (
+        {visibleNav.map((item) => (
           <button
             key={item.id}
             onClick={() => { onChange(item.id); onClose && onClose(); }}

@@ -14,6 +14,46 @@ router.get("/", async (req, res) => {
   res.json(data);
 });
 
+// ══════════════════════════════════════════════
+// Super-admin: club verification
+// ══════════════════════════════════════════════
+
+// GET /api/clubs/admin/pending — list clubs awaiting verification
+// (super_admin only). Includes the admin who created each club so reviewers
+// can see who's behind the request.
+router.get("/admin/pending", requireSuperAdmin, async (req, res) => {
+  const { data, error } = await supabase
+    .from("clubs")
+    .select("*, club_admins(user_id, profiles(id, name, email, class_year))")
+    .eq("verified", false)
+    .order("created_at", { ascending: false });
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+// POST /api/clubs/admin/:id/verify — approve a club (super_admin only)
+router.post("/admin/:id/verify", requireSuperAdmin, async (req, res) => {
+  const { data, error } = await supabase
+    .from("clubs")
+    .update({ verified: true })
+    .eq("id", req.params.id)
+    .select().single();
+  if (error) return res.status(500).json({ error: error.message });
+  if (!data) return res.status(404).json({ error: "Club not found" });
+  res.json(data);
+});
+
+// DELETE /api/clubs/admin/:id — reject + delete a club (super_admin only).
+// Cascade clears club_admins rows, but the underlying user accounts stay.
+router.delete("/admin/:id", requireSuperAdmin, async (req, res) => {
+  const { error } = await supabase
+    .from("clubs")
+    .delete()
+    .eq("id", req.params.id);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ deleted: true });
+});
+
 // GET /api/clubs/:id — club detail + upcoming events
 router.get("/:id", async (req, res) => {
   const { data, error } = await supabase
