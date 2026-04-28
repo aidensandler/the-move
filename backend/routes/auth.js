@@ -5,14 +5,19 @@ import { requireAuth } from "../middleware/auth.js";
 const router = express.Router();
 
 // POST /api/auth/register
-// Body: { email, password, name, class_year }
-// Only allows @princeton.edu emails
+// Body: { email, password, name, class_year, role }
+// Only allows @princeton.edu emails. If the email is already registered,
+// we verify the password matches and (if the caller asked for it) promote
+// the existing profile to the new role — so a student who later starts a
+// club can keep using the same login.
 router.post("/register", async (req, res) => {
   const { email, password, name, class_year, role } = req.body;
 
-  if (!email.endsWith("@princeton.edu")) {
+  if (!email || !email.endsWith("@princeton.edu")) {
     return res.status(400).json({ error: "Only @princeton.edu email addresses are allowed" });
   }
+
+  const wantedRole = role === "club_admin" ? "club_admin" : "student";
 
   const { data, error } = await supabase.auth.admin.createUser({
     email, password,
@@ -20,15 +25,45 @@ router.post("/register", async (req, res) => {
     user_metadata: { name, class_year },
   });
 
-  if (error) return res.status(400).json({ error: error.message });
+  if (error) {
+    // Email already exists in auth.users — let them sign in with their
+    // existing password instead. We verify the password before touching
+    // the profile so nobody can hijack another user's account.
+    const looksLikeDuplicate = /already (registered|exists|been)/i.test(error.message);
+    if (!looksLikeDuplicate) {
+      return res.status(400).json({ error: error.message });
+    }
 
-  // Create profile row
+    const { data: signIn, error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+    if (signInErr || !signIn?.user) {
+      return res.status(409).json({
+        error: "An account with this email already exists. Please sign in with your existing password.",
+      });
+    }
+
+    // Update the profile's role if it needs upgrading. We don't downgrade
+    // existing club_admins/super_admins by accident.
+    const { data: existing } = await supabase
+      .from("profiles").select("role").eq("id", signIn.user.id).maybeSingle();
+
+    if (existing && existing.role === "student" && wantedRole === "club_admin") {
+      await supabase.from("profiles").update({ role: "club_admin" }).eq("id", signIn.user.id);
+    }
+
+    return res.status(200).json({
+      message: wantedRole === "club_admin"
+        ? "You already had an account — we've upgraded it to a club admin. You can sign in now."
+        : "Account already exists — you can sign in now.",
+    });
+  }
+
+  // Brand-new user — create their profile row.
   await supabase.from("profiles").insert({
     id: data.user.id,
     email,
     name,
     class_year: class_year ? Number(class_year) : null,
-    role: role === "club_admin" ? "club_admin" : "student",
+    role: wantedRole,
   });
 
   res.status(201).json({ message: "Account created — you can sign in now." });
@@ -63,12 +98,19 @@ router.post("/apply-admin", async (req, res) => {
   });
 
   if (createErr) {
-    // If already registered, try to find the existing profile and attach the
-    // application to that user instead (so repeat applications still work).
-    const { data: existing } = await supabase
-      .from("profiles").select("id").eq("email", email).maybeSingle();
-    if (!existing) return res.status(400).json({ error: createErr.message });
-    userId = existing.id;
+    // Email already registered. Verify the password matches before attaching
+    // the application to that user — otherwise anyone could file applications
+    // under someone else's name.
+    const looksLikeDuplicate = /already (registered|exists|been)/i.test(createErr.message);
+    if (!looksLikeDuplicate) return res.status(400).json({ error: createErr.message });
+
+    const { data: signIn, error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+    if (signInErr || !signIn?.user) {
+      return res.status(409).json({
+        error: "An account with this email already exists. Please use your existing password.",
+      });
+    }
+    userId = signIn.user.id;
   } else {
     userId = created.user.id;
     await supabase.from("profiles").insert({
