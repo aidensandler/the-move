@@ -65,21 +65,42 @@ router.get("/:id", async (req, res) => {
   res.json(data);
 });
 
-// POST /api/clubs — create club (super admin only, or self-register flow)
+// POST /api/clubs — create club (any authenticated user; the creator
+// is automatically linked as the first admin of the new club).
 router.post("/", requireAuth, async (req, res) => {
   const { name, description, category, instagram, email } = req.body;
-  const { data, error } = await supabase
+
+  const { data: club, error } = await supabase
     .from("clubs")
     .insert({ name, description, category, instagram, email, verified: false })
     .select().single();
   if (error) return res.status(500).json({ error: error.message });
 
-  // Make creator an admin of the new club
-  await supabase.from("club_admins").insert({ user_id: req.user.id, club_id: data.id });
-  // Upgrade their role
-  await supabase.from("profiles").update({ role: "club_admin" }).eq("id", req.user.id);
+  // Link the creator as the club's first admin. If this fails we have to
+  // roll back the club row — otherwise we'd leave an orphaned, un-adminned
+  // club that the user can't manage and that would re-trigger the setup
+  // flow on every refresh.
+  const { error: linkErr } = await supabase
+    .from("club_admins")
+    .insert({ user_id: req.user.id, club_id: club.id });
+  if (linkErr) {
+    await supabase.from("clubs").delete().eq("id", club.id);
+    return res.status(500).json({
+      error: "Could not link you as admin of the new club: " + linkErr.message,
+    });
+  }
 
-  res.status(201).json(data);
+  // Upgrade the creator's role from student → club_admin (don't downgrade
+  // an existing super_admin).
+  const { data: profile } = await supabase
+    .from("profiles").select("role").eq("id", req.user.id).maybeSingle();
+  if (profile?.role === "student") {
+    await supabase.from("profiles")
+      .update({ role: "club_admin" })
+      .eq("id", req.user.id);
+  }
+
+  res.status(201).json(club);
 });
 
 // GET /api/clubs/:id/events — all events for this club
