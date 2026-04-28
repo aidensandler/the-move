@@ -159,6 +159,37 @@ alter table public.eating_club_status enable row level security;
 create policy "profiles_read_all"   on public.profiles for select using (true);
 create policy "profiles_edit_own"   on public.profiles for update using (auth.uid() = id);
 
+-- Clubs: anyone can read; authenticated users can create a new club
+-- (the creator becomes its admin via the backend); admins of that club
+-- (or super_admins) can update.
+create policy "clubs_read_all"
+  on public.clubs for select using (true);
+create policy "clubs_insert_authenticated"
+  on public.clubs for insert with check (auth.uid() is not null);
+create policy "clubs_update_admins"
+  on public.clubs for update using (
+    exists (select 1 from public.club_admins
+            where user_id = auth.uid() and club_id = clubs.id)
+    or exists (select 1 from public.profiles
+               where id = auth.uid() and role = 'super_admin')
+  );
+
+-- Club admins: anyone can read who admins what; users may add themselves
+-- (used right after creating a new club); super_admins manage everything.
+create policy "club_admins_read_all"
+  on public.club_admins for select using (true);
+create policy "club_admins_insert_self"
+  on public.club_admins for insert with check (
+    auth.uid() = user_id
+    or exists (select 1 from public.profiles
+               where id = auth.uid() and role = 'super_admin')
+  );
+create policy "club_admins_delete_super"
+  on public.club_admins for delete using (
+    exists (select 1 from public.profiles
+            where id = auth.uid() and role = 'super_admin')
+  );
+
 -- Events: anyone can read published events
 create policy "events_read"  on public.events for select using (is_published = true);
 -- Club admins can insert/update their own club's events
