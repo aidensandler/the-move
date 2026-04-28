@@ -6,6 +6,22 @@ import { requireAuth, requireClubAdmin } from "../middleware/auth.js";
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
+// Build a Supabase-Storage-safe object key from an uploaded file.
+// multer hands us latin1-decoded filenames, so a macOS screenshot like
+// "Screenshot_…7.47.14 PM.png" (with a U+202F narrow no-break space)
+// arrives as raw bytes that Storage rejects as "Invalid key". We strip
+// everything except [A-Za-z0-9._-], collapse runs of underscores, and
+// prepend a timestamp for uniqueness.
+function buildStorageKey(originalname) {
+  const safe = (originalname || "upload")
+    .normalize("NFKD")                   // decompose accents → ascii base + mark
+    .replace(/[^a-zA-Z0-9._-]+/g, "_")   // anything else → _
+    .replace(/_+/g, "_")                 // collapse runs
+    .replace(/^_+|_+$/g, "")             // trim edges
+    .slice(-80) || "upload";             // cap length, fallback if empty
+  return `${Date.now()}-${safe}`;
+}
+
 // GET /api/events — fetch all published events (with RSVP counts)
 router.get("/", async (req, res) => {
   const { category, source, date_from, date_to, limit = 50, offset = 0 } = req.query;
@@ -59,7 +75,7 @@ router.post("/", requireClubAdmin, upload.single("flyer"), async (req, res) => {
   // Upload flyer image to Supabase Storage if provided
   let banner_url = null;
   if (req.file) {
-    const fileName = `${Date.now()}-${req.file.originalname.replace(/\s/g, "_")}`;
+    const fileName = buildStorageKey(req.file.originalname);
     const { error: uploadError } = await supabase.storage
       .from("flyers")
       .upload(fileName, req.file.buffer, { contentType: req.file.mimetype });
@@ -91,8 +107,11 @@ router.patch("/:id", requireClubAdmin, upload.single("flyer"), async (req, res) 
   const updates = { ...req.body, updated_at: new Date().toISOString() };
 
   if (req.file) {
-    const fileName = `${Date.now()}-${req.file.originalname.replace(/\s/g, "_")}`;
-    await supabase.storage.from("flyers").upload(fileName, req.file.buffer, { contentType: req.file.mimetype });
+    const fileName = buildStorageKey(req.file.originalname);
+    const { error: uploadError } = await supabase.storage
+      .from("flyers")
+      .upload(fileName, req.file.buffer, { contentType: req.file.mimetype });
+    if (uploadError) return res.status(500).json({ error: "Flyer upload failed: " + uploadError.message });
     const { data: urlData } = supabase.storage.from("flyers").getPublicUrl(fileName);
     updates.banner_url = urlData.publicUrl;
   }
