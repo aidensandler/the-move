@@ -127,7 +127,7 @@ router.get("/admin/my-club", requireClubAdmin, async (req, res) => {
 
   const { data, error } = await supabase
     .from("clubs")
-    .select("*, events(*)")
+    .select("*, events(*, rsvps(count))")
     .eq("id", adminRecord.club_id)
     .single();
 
