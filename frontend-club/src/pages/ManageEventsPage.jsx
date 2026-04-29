@@ -32,9 +32,23 @@ export default function ManageEventsPage({ club, onEdit }) {
 
   return (
     <>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28, gap: 10 }}>
         <h1 style={{ fontSize: 22, fontFamily: "Georgia,serif", fontWeight: 400 }}>Manage events</h1>
-        <button className="btn-primary" onClick={() => onEdit(null)}>✦ Post new flyer</button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            onClick={load}
+            disabled={loading}
+            style={{
+              background: "transparent", border: "0.5px solid rgba(201,168,76,0.4)",
+              color: "#C9A84C", padding: "7px 12px", borderRadius: 7, fontSize: 10,
+              letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer",
+            }}
+            title="Refresh"
+          >
+            {loading ? "…" : "↻ Refresh"}
+          </button>
+          <button className="btn-primary" onClick={() => onEdit(null)}>✦ Post new flyer</button>
+        </div>
       </div>
 
       <div className="card" style={{ padding: 0, overflow: "hidden" }}>

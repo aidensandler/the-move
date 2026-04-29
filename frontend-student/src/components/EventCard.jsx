@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "../api";
 
 const BANNER_COLORS = {
@@ -17,6 +17,12 @@ export default function EventCard({ event, onTicket, showAiReason, aiReason }) {
   const [busy, setBusy]   = useState(false);
   const isStreet = event.category === "street";
   const bannerBg = event.banner_bg ?? BANNER_COLORS[event.category] ?? "#111";
+
+  // Keep the button in sync if the parent re-fetches RSVP state
+  // (e.g. user navigates away and comes back to the feed).
+  useEffect(() => {
+    setGoing(event._userRsvped ?? false);
+  }, [event.id, event._userRsvped]);
 
   async function handleRsvp() {
     if (busy) return;

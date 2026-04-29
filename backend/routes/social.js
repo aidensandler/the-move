@@ -40,6 +40,18 @@ router.get("/my-rsvps", requireAuth, async (req, res) => {
   res.json(data.map((r) => r.events));
 });
 
+// GET /api/social/my-rsvp-ids — lightweight: just the event IDs the user
+// has RSVPed to. Used by the All Events feed so the Reserve button stays
+// lit when you navigate away and come back.
+router.get("/my-rsvp-ids", requireAuth, async (req, res) => {
+  const { data, error } = await supabase
+    .from("rsvps")
+    .select("event_id")
+    .eq("user_id", req.user.id);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json((data ?? []).map((r) => r.event_id));
+});
+
 // ── Tickets ───────────────────────────────────
 
 // POST /api/social/tickets — purchase a ticket (stub — wire Stripe before going live)

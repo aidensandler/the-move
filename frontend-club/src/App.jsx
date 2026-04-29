@@ -17,6 +17,10 @@ export default function App() {
   const [page, setPage]       = useState("dashboard");
   const [editEvent, setEditEvent] = useState(null); // event being edited
   const [navOpen, setNavOpen] = useState(false);    // mobile drawer
+  // Bumped after a flyer is saved — used as a `key` on ManageEventsPage so
+  // it remounts and re-fetches even if React would otherwise reuse the
+  // existing instance.
+  const [eventsBump, setEventsBump] = useState(0);
 
   useEffect(() => {
     const token = getToken();
@@ -55,10 +59,16 @@ export default function App() {
   // Club not set up yet
   if (!club) return <SetupClubPage user={user} onCreated={(c) => { setClub(c); setPage("dashboard"); }} />;
 
+  const onFlyerSaved = () => {
+    setEditEvent(null);
+    setEventsBump((n) => n + 1);   // force ManageEventsPage to refetch
+    setPage("events");
+  };
+
   const pages = {
     dashboard:       <DashboardPage club={club} onNavigate={setPage} />,
-    post:            <PostFlyerPage club={club} editEvent={editEvent} onSaved={() => { setEditEvent(null); setPage("events"); }} onCancel={() => { setEditEvent(null); setPage("events"); }} />,
-    events:          <ManageEventsPage club={club} onEdit={openEdit} />,
+    post:            <PostFlyerPage club={club} editEvent={editEvent} onSaved={onFlyerSaved} onCancel={() => { setEditEvent(null); setPage("events"); }} />,
+    events:          <ManageEventsPage key={`events-${eventsBump}`} club={club} onEdit={openEdit} />,
     profile:         <ClubProfilePage club={club} onUpdated={setClub} />,
     applications:    <AdminApplicationsPage club={club} />,
     "pending-clubs": <PendingClubsPage />,

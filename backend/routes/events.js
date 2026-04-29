@@ -22,9 +22,16 @@ function buildStorageKey(originalname) {
   return `${Date.now()}-${safe}`;
 }
 
-// GET /api/events — fetch all published events (with RSVP counts)
+// GET /api/events — fetch published events (with RSVP counts).
+// By default returns only upcoming events (event_date >= today). Pass
+// `?include_past=1` to opt back into past events.
 router.get("/", async (req, res) => {
-  const { category, source, date_from, date_to, limit = 50, offset = 0 } = req.query;
+  const {
+    category, source, date_from, date_to,
+    include_past, limit = 50, offset = 0,
+  } = req.query;
+
+  const today = new Date().toISOString().split("T")[0];
 
   let query = supabase
     .from("events")
@@ -39,7 +46,11 @@ router.get("/", async (req, res) => {
 
   if (category) query = query.eq("category", category);
   if (source)   query = query.eq("source", source);
-  if (date_from) query = query.gte("event_date", date_from);
+  if (date_from) {
+    query = query.gte("event_date", date_from);
+  } else if (!include_past) {
+    query = query.gte("event_date", today);
+  }
   if (date_to)   query = query.lte("event_date", date_to);
 
   const { data, error } = await query;
@@ -66,11 +77,18 @@ router.post("/", requireClubAdmin, upload.single("flyer"), async (req, res) => {
     event_date, start_time, end_time,
     banner_emoji, banner_bg, ticket_price,
     ticket_url, guest_policy, capacity, club_id,
+    is_published,
   } = req.body;
 
   if (!title || !event_date) {
     return res.status(400).json({ error: "title and event_date are required" });
   }
+
+  // FormData sends booleans as "true" / "false" strings. Treat anything
+  // explicit as a draft only if it's literally false-y; otherwise publish.
+  const publish =
+    is_published === undefined ? true :
+    !(is_published === "false" || is_published === false);
 
   // Upload flyer image to Supabase Storage if provided
   let banner_url = null;
@@ -95,6 +113,7 @@ router.post("/", requireClubAdmin, upload.single("flyer"), async (req, res) => {
     capacity: capacity ? Number(capacity) : null,
     club_id: club_id || null,
     source: "club",
+    is_published: publish,
     created_by: req.user.id,
   }).select().single();
 

@@ -35,6 +35,7 @@ export const api = {
   // RSVPs
   toggleRsvp: (eventId) => apiFetch(`/api/social/rsvp/${eventId}`, { method: "POST" }),
   myRsvps:    () => apiFetch("/api/social/my-rsvps"),
+  myRsvpIds:  () => apiFetch("/api/social/my-rsvp-ids"),
 
   // Tickets
   purchaseTicket: (body) => apiFetch("/api/social/tickets", { method: "POST", body: JSON.stringify(body) }),
